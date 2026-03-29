@@ -160,7 +160,7 @@ trait DarkTech_YSC_Admin
         if (! current_user_can('manage_options')) {
             return;
         }
-        ?>
+?>
         <div class="wrap">
             <h1><?php echo esc_html__('DarkTech Yandex SmartCaptcha', 'darktech-yandex-smartcaptcha'); ?></h1>
 
@@ -174,13 +174,13 @@ trait DarkTech_YSC_Admin
 
             <h2><?php echo esc_html__('Использование', 'darktech-yandex-smartcaptcha'); ?></h2>
             <p><strong><?php echo esc_html__('Elementor:', 'darktech-yandex-smartcaptcha'); ?></strong> <code>[darktech-captcha]</code></p>
-            <p><?php echo esc_html__('Добавьте виджет Shortcode внутрь формы Elementor и вставьте туда шорткод.', 'darktech-yandex-smartcaptcha'); ?></p>
+            <p><?php echo esc_html__('Добавьте в Elementor форму HTML поле и вставьте туда шорткод.', 'darktech-yandex-smartcaptcha'); ?></p>
 
             <p><strong><?php echo esc_html__('Contact Form 7:', 'darktech-yandex-smartcaptcha'); ?></strong> <code>[darktech_captcha*]</code></p>
             <p><?php echo esc_html__('Добавьте form-tag в шаблон формы Contact Form 7 в том месте, где должен появиться виджет. Имя поля можно не задавать вручную.', 'darktech-yandex-smartcaptcha'); ?></p>
 
             <p><strong><?php echo esc_html__('Важно:', 'darktech-yandex-smartcaptcha'); ?></strong> <?php echo esc_html__('Если ключи не настроены, виджет не будет рендериться, а серверная проверка не сможет отработать.', 'darktech-yandex-smartcaptcha'); ?></p>
         </div>
-        <?php
+<?php
     }
 }
