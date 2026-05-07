@@ -14,7 +14,7 @@
 - пишет логи в `wp-content/debug.log` при включённом debug-режиме
 - позволяет менять имя скрытого поля для шорткода
 - автоматически подставляет язык виджета на основе locale WordPress
-- сохраняет совместимость со старыми shortcode, form-tag и option key
+- сохраняет ранее сохранённые настройки через fallback на прежний option key
 
 ## Установка
 
@@ -42,7 +42,6 @@
 ```
 
 Шорткод выведет контейнер SmartCaptcha и скрытое поле, которое плагин использует для серверной проверки.
-Старый шорткод `[yandex_smartcaptcha]` тоже продолжает работать для совместимости.
 Имя скрытого поля для этой интеграции задаётся в настройке `Shortcode token field name`.
 
 ## Использование в Contact Form 7
@@ -63,7 +62,6 @@
 [submit "Отправить"]
 ```
 
-Старые form-tag имена `[darktech_yandexcaptcha* ...]` и `[dt_yandexcaptcha* ...]` тоже оставлены для совместимости.
 Если имя поля не указано явно, используется имя по умолчанию `darktech-captcha`.
 
 ## Отладка
@@ -90,7 +88,7 @@ define('WP_DEBUG_DISPLAY', false);
 - `includes/class-darktech-ysc-settings-registrar.php` — регистрация settings section и settings fields
 - `includes/class-darktech-ysc-assets.php` — регистрация и подключение Yandex API script и `ysc-frontend.js`
 - `includes/class-darktech-ysc-widget-renderer.php` — HTML-разметка SmartCaptcha для shortcode и Contact Form 7
-- `includes/class-darktech-ysc-shortcode-handler.php` — регистрация shortcode `[darktech-captcha]` и legacy shortcode
+- `includes/class-darktech-ysc-shortcode-handler.php` — регистрация shortcode `[darktech-captcha]`
 - `includes/class-darktech-ysc-elementor-integration.php` — валидация токена в отправках Elementor Pro Forms
 - `includes/class-darktech-ysc-cf7-integration.php` — регистрация form-tag'ов Contact Form 7 и серверная валидация
 - `includes/class-darktech-ysc-token-validator.php` — запрос к Yandex SmartCaptcha Validate API и разбор ответа
@@ -106,6 +104,22 @@ define('WP_DEBUG_DISPLAY', false);
 - Contact Form 7
 
 ## Changelog
+
+### 1.1.3
+
+- удалена поддержка устаревшего shortcode-алиаса
+- удалены устаревшие form-tag алиасы Contact Form 7
+
+### 1.1.2
+
+- отложен рендер SmartCaptcha внутри скрытых Elementor popup
+- добавлена переинициализация и сброс виджета на события открытия/закрытия popup
+
+### 1.1.1
+
+- исправлена регистрация validation hook для Elementor Pro Forms
+- фронтенд-скрипты подключаются предсказуемо при наличии Client key
+- улучшено восстановление виджета после динамического рендера Elementor и сброса одноразового токена
 
 ### 1.1.0
 

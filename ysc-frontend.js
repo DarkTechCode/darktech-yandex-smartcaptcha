@@ -1,20 +1,25 @@
 (function () {
+  if (
+    window.DarkTechYandexSmartCaptcha &&
+    window.DarkTechYandexSmartCaptcha.loaded
+  ) {
+    window.DarkTechYandexSmartCaptcha.init(document);
+    return;
+  }
+
   var config = window.DarkTechYandexSmartCaptchaConfig || {};
   var observerStarted = false;
   var elementorHookAttached = false;
-  var wrapperSelector =
-    "[data-darktech-ysc-wrapper], [data-dt-ysc-wrapper]";
+  var wrapperSelector = "[data-darktech-ysc-wrapper], [data-dt-ysc-wrapper]";
   var hiddenInputSelector =
     "[data-darktech-ysc-hidden-input], [data-dt-ysc-hidden-input]";
   var containerSelector =
     "[data-darktech-ysc-container], [data-dt-ysc-container]";
+  var nativeTokenSelector = 'input[name="smart-token"]';
+  var staleWidgetDelay = 3000;
 
   function log() {
-    if (
-      !config.debug ||
-      !window.console ||
-      typeof window.console.info !== "function"
-    ) {
+    if (!config.debug || !window.console || !window.console.info) {
       return;
     }
 
@@ -38,150 +43,230 @@
       return [root];
     }
 
-    if (!root.querySelectorAll) {
-      return [];
+    return root.querySelectorAll
+      ? Array.prototype.slice.call(root.querySelectorAll(wrapperSelector))
+      : [];
+  }
+
+  function isVisibleForRender(element) {
+    var current = element;
+
+    if (!document.documentElement.contains(element)) {
+      return false;
     }
 
-    return Array.prototype.slice.call(
-      root.querySelectorAll(wrapperSelector)
+    while (current && current.nodeType === 1) {
+      var style = window.getComputedStyle
+        ? window.getComputedStyle(current)
+        : null;
+
+      if (
+        current.hidden ||
+        (style && (style.display === "none" || style.visibility === "hidden"))
+      ) {
+        return false;
+      }
+
+      current = current.parentElement;
+    }
+
+    return true;
+  }
+
+  function getWidgetId(wrapper) {
+    var value =
+      wrapper.dataset.darktechYscWidgetId || wrapper.dataset.dtYscWidgetId;
+    var numberValue = Number(value);
+
+    return value && !Number.isNaN(numberValue) ? numberValue : value;
+  }
+
+  function hasWidgetId(wrapper) {
+    return !!(
+      wrapper.dataset.darktechYscWidgetId || wrapper.dataset.dtYscWidgetId
     );
   }
 
   function syncToken(wrapper, token) {
-    var value = token || "";
-    var inputs = wrapper.querySelectorAll(hiddenInputSelector);
-
-    Array.prototype.forEach.call(inputs, function (input) {
-      input.value = value;
-    });
+    Array.prototype.forEach.call(
+      wrapper.querySelectorAll(hiddenInputSelector),
+      function (input) {
+        input.value = token || "";
+      }
+    );
   }
 
-  function getWidgetId(wrapper) {
-    var widgetIdValue =
-      wrapper.dataset.darktechYscWidgetId || wrapper.dataset.dtYscWidgetId;
+  function getNativeToken(wrapper) {
+    var input = wrapper.querySelector(nativeTokenSelector);
 
-    if (!widgetIdValue) {
-      return undefined;
+    return input ? input.value || "" : "";
+  }
+
+  function syncCurrentToken(wrapper) {
+    var token = "";
+
+    if (window.smartCaptcha && window.smartCaptcha.getResponse && hasWidgetId(wrapper)) {
+      token = window.smartCaptcha.getResponse(getWidgetId(wrapper));
     }
 
-    var widgetId = Number(widgetIdValue);
+    syncToken(wrapper, token || getNativeToken(wrapper));
+  }
 
-    return Number.isNaN(widgetId) ? widgetIdValue : widgetId;
+  function clearWrapperState(wrapper, destroyWidget) {
+    if (
+      destroyWidget &&
+      hasWidgetId(wrapper) &&
+      window.smartCaptcha &&
+      window.smartCaptcha.destroy
+    ) {
+      try {
+        window.smartCaptcha.destroy(getWidgetId(wrapper));
+      } catch (error) {
+        log("SmartCaptcha destroy error", error);
+      }
+    }
+
+    delete wrapper.dataset.darktechYscInitialized;
+    delete wrapper.dataset.darktechYscWidgetId;
+    delete wrapper.dataset.darktechYscRenderedAt;
+    delete wrapper.dataset.dtYscInitialized;
+    delete wrapper.dataset.dtYscWidgetId;
+    syncToken(wrapper, "");
+  }
+
+  function hasRenderedWidget(wrapper) {
+    var container = wrapper.querySelector(containerSelector);
+
+    return !!(
+      container &&
+      (container.children.length > 0 ||
+        container.querySelector("iframe") ||
+        container.querySelector(nativeTokenSelector))
+    );
+  }
+
+  function hasFreshRenderAttempt(wrapper) {
+    var renderedAt = Number(wrapper.dataset.darktechYscRenderedAt || 0);
+
+    return renderedAt > 0 && Date.now() - renderedAt < staleWidgetDelay;
   }
 
   function resetWrapper(wrapper) {
     syncToken(wrapper, "");
 
-    if (
-      window.smartCaptcha &&
-      typeof window.smartCaptcha.reset === "function" &&
-      (wrapper.dataset.darktechYscWidgetId || wrapper.dataset.dtYscWidgetId)
-    ) {
+    if (window.smartCaptcha && window.smartCaptcha.reset && hasWidgetId(wrapper)) {
       window.smartCaptcha.reset(getWidgetId(wrapper));
     }
   }
 
   function resetScope(scope) {
-    getWrappers(scope).forEach(function (wrapper) {
-      resetWrapper(wrapper);
+    getWrappers(scope).forEach(resetWrapper);
+  }
+
+  function subscribe(widgetId, wrapper) {
+    if (!window.smartCaptcha.subscribe) {
+      return;
+    }
+
+    window.smartCaptcha.subscribe(widgetId, "success", function (token) {
+      syncToken(wrapper, token);
+    });
+    window.smartCaptcha.subscribe(widgetId, "token-expired", function () {
+      syncToken(wrapper, "");
+    });
+    window.smartCaptcha.subscribe(widgetId, "network-error", function () {
+      syncToken(wrapper, "");
+      log("SmartCaptcha network error");
+    });
+    window.smartCaptcha.subscribe(widgetId, "javascript-error", function (error) {
+      syncToken(wrapper, "");
+      log("SmartCaptcha javascript error", error);
     });
   }
 
   function renderWrapper(wrapper) {
-    if (
-      !wrapper ||
-      wrapper.dataset.darktechYscInitialized === "1" ||
-      !window.smartCaptcha ||
-      typeof window.smartCaptcha.render !== "function"
-    ) {
+    if (!wrapper || !window.smartCaptcha || !window.smartCaptcha.render) {
       return;
+    }
+
+    if (!isVisibleForRender(wrapper)) {
+      return;
+    }
+
+    if (wrapper.dataset.darktechYscInitialized === "1") {
+      if (hasRenderedWidget(wrapper) || hasFreshRenderAttempt(wrapper)) {
+        syncCurrentToken(wrapper);
+        return;
+      }
+
+      clearWrapperState(wrapper, true);
     }
 
     var container = wrapper.querySelector(containerSelector);
+    var sitekey = container ? container.getAttribute("data-sitekey") : "";
 
-    if (!container) {
+    if (!container || !sitekey) {
+      log("Missing SmartCaptcha container or sitekey", wrapper);
       return;
     }
 
-    var sitekey = container.getAttribute("data-sitekey");
-    var language = container.getAttribute("data-language");
-
-    if (!sitekey) {
-      log("Missing sitekey for wrapper", wrapper);
-      return;
-    }
-
-    var widgetId = window.smartCaptcha.render(container, {
-      sitekey: sitekey,
-      hl: language || undefined,
-      callback: function (token) {
-        syncToken(wrapper, token);
-      },
-    });
-
-    wrapper.dataset.darktechYscInitialized = "1";
-    wrapper.dataset.darktechYscWidgetId = String(widgetId);
-    wrapper.dataset.dtYscInitialized = "1";
-    wrapper.dataset.dtYscWidgetId = String(widgetId);
-
-    if (
-      window.smartCaptcha &&
-      typeof window.smartCaptcha.subscribe === "function"
-    ) {
-      window.smartCaptcha.subscribe(widgetId, "token-expired", function () {
-        syncToken(wrapper, "");
+    try {
+      var widgetId = window.smartCaptcha.render(container, {
+        sitekey: sitekey,
+        hl: container.getAttribute("data-language") || undefined,
+        callback: function (token) {
+          syncToken(wrapper, token);
+        },
       });
 
-      window.smartCaptcha.subscribe(widgetId, "network-error", function () {
-        syncToken(wrapper, "");
-        log("SmartCaptcha network error");
-      });
-
-      window.smartCaptcha.subscribe(widgetId, "javascript-error", function (
-        error
-      ) {
-        syncToken(wrapper, "");
-        log("SmartCaptcha javascript error", error);
-      });
-    }
-
-    if (
-      window.smartCaptcha &&
-      typeof window.smartCaptcha.getResponse === "function"
-    ) {
-      syncToken(wrapper, window.smartCaptcha.getResponse(widgetId));
+      wrapper.dataset.darktechYscInitialized = "1";
+      wrapper.dataset.darktechYscWidgetId = String(widgetId);
+      wrapper.dataset.darktechYscRenderedAt = String(Date.now());
+      wrapper.dataset.dtYscInitialized = "1";
+      wrapper.dataset.dtYscWidgetId = String(widgetId);
+      subscribe(widgetId, wrapper);
+      syncCurrentToken(wrapper);
+    } catch (error) {
+      clearWrapperState(wrapper, false);
+      log("SmartCaptcha render error", error);
     }
   }
 
   function init(scope) {
-    if (
-      !window.smartCaptcha ||
-      typeof window.smartCaptcha.render !== "function"
-    ) {
+    if (!window.smartCaptcha || !window.smartCaptcha.render) {
       return;
     }
 
-    getWrappers(scope).forEach(function (wrapper) {
-      renderWrapper(wrapper);
-    });
+    getWrappers(scope).forEach(renderWrapper);
+  }
+
+  function scheduleInit(scope) {
+    init(scope);
+    window.setTimeout(function () {
+      init(scope);
+    }, 150);
+    window.setTimeout(function () {
+      init(scope);
+    }, 500);
+  }
+
+  function refreshScope(scope) {
+    resetScope(scope);
+    window.setTimeout(function () {
+      init(scope);
+    }, 50);
+  }
+
+  function getPopupScope(event, instance) {
+    if (instance && instance.$element && instance.$element.length) {
+      return instance.$element;
+    }
+
+    return event && event.target ? event.target : document;
   }
 
   function syncFormOnSubmit(event) {
-    var form = event.target;
-
-    if (!form || !form.querySelectorAll) {
-      return;
-    }
-
-    getWrappers(form).forEach(function (wrapper) {
-      if (
-        window.smartCaptcha &&
-        typeof window.smartCaptcha.getResponse === "function" &&
-        (wrapper.dataset.darktechYscWidgetId || wrapper.dataset.dtYscWidgetId)
-      ) {
-        syncToken(wrapper, window.smartCaptcha.getResponse(getWidgetId(wrapper)));
-      }
-    });
+    getWrappers(event.target).forEach(syncCurrentToken);
   }
 
   function attachElementorHook() {
@@ -189,7 +274,7 @@
       elementorHookAttached ||
       !window.elementorFrontend ||
       !window.elementorFrontend.hooks ||
-      typeof window.elementorFrontend.hooks.addAction !== "function"
+      !window.elementorFrontend.hooks.addAction
     ) {
       return;
     }
@@ -209,45 +294,36 @@
     }
 
     observerStarted = true;
-
-    var observer = new MutationObserver(function (mutations) {
+    new MutationObserver(function (mutations) {
       mutations.forEach(function (mutation) {
         Array.prototype.forEach.call(mutation.addedNodes, function (node) {
-          if (!node || node.nodeType !== 1) {
-            return;
+          if (node && node.nodeType === 1) {
+            init(node);
           }
-
-          init(node);
         });
       });
-    });
-
-    observer.observe(document.documentElement, {
-      childList: true,
-      subtree: true,
-    });
+    }).observe(document.documentElement, { childList: true, subtree: true });
   }
 
   function bindEvents() {
     document.addEventListener("submit", syncFormOnSubmit, true);
-    document.addEventListener(
-      "reset",
-      function (event) {
-        resetScope(event.target);
-      },
-      true
-    );
+    document.addEventListener("reset", function (event) {
+      refreshScope(event.target);
+    }, true);
     document.addEventListener("wpcf7submit", function (event) {
-      resetScope(event.target);
-      window.setTimeout(function () {
-        init(event.target);
-      }, 50);
+      refreshScope(event.target);
     });
     document.addEventListener("wpcf7reset", function (event) {
+      refreshScope(event.target);
+    });
+    document.addEventListener("submit_success", function (event) {
+      refreshScope(event.target);
+    });
+    document.addEventListener("elementor/popup/show", function (event) {
+      scheduleInit(event.target);
+    });
+    document.addEventListener("elementor/popup/hide", function (event) {
       resetScope(event.target);
-      window.setTimeout(function () {
-        init(event.target);
-      }, 50);
     });
     document.addEventListener("darktech-yandex-smartcaptcha-loaded", function () {
       init(document);
@@ -259,10 +335,31 @@
       attachElementorHook();
       init(document);
     });
+
+    if (window.jQuery && window.jQuery.fn && window.jQuery.fn.on) {
+      window.jQuery(document).on("submit_success", function (event) {
+        refreshScope(event.target);
+      });
+      window.jQuery(document).on("elementor/popup/show", function (
+        event,
+        id,
+        instance
+      ) {
+        scheduleInit(getPopupScope(event, instance));
+      });
+      window.jQuery(document).on("elementor/popup/hide", function (
+        event,
+        id,
+        instance
+      ) {
+        resetScope(getPopupScope(event, instance));
+      });
+    }
   }
 
-  window.DarkTechYandexSmartCaptcha = window.DarkTechYandexSmartCaptcha || {
+  window.DarkTechYandexSmartCaptcha = {
     init: init,
+    loaded: true,
     reset: resetScope,
   };
 
@@ -286,4 +383,3 @@
     boot();
   }
 })();
-

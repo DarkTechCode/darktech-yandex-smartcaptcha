@@ -21,7 +21,6 @@ final class DarkTech_YSC_Shortcode_Handler
     public function register(): void
     {
         add_shortcode(DarkTech_YSC_Plugin_Config::SHORTCODE, [$this, 'render']);
-        add_shortcode(DarkTech_YSC_Plugin_Config::LEGACY_SHORTCODE, [$this, 'render']);
     }
 
     public function render($atts = []): string

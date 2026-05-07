@@ -47,24 +47,6 @@ final class DarkTech_YSC_CF7_Integration
                 'name-attr' => true,
             ]
         );
-
-        wpcf7_add_form_tag(
-            ['darktech_yandexcaptcha', 'darktech_yandexcaptcha*'],
-            [$this, 'renderFormTag'],
-            [
-                'display-block' => true,
-                'name-attr' => true,
-            ]
-        );
-
-        wpcf7_add_form_tag(
-            ['dt_yandexcaptcha', 'dt_yandexcaptcha*'],
-            [$this, 'renderFormTag'],
-            [
-                'display-block' => true,
-                'name-attr' => true,
-            ]
-        );
     }
 
     public function renderFormTag($tag): string

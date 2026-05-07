@@ -30,7 +30,7 @@ final class DarkTech_YSC_Assets
 
     public function enqueueFrontend(): void
     {
-        if (is_admin() || $this->assets_enqueued) {
+        if (is_admin() || $this->assets_enqueued || ! $this->options->hasClientKey()) {
             return;
         }
 

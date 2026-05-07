@@ -6,7 +6,7 @@ declare(strict_types=1);
  * Plugin Name: DarkTech Yandex SmartCaptcha
  * Plugin URI: https://github.com/DarkTechCode/darktech-yandex-smartcaptcha
  * Description: Интеграция Yandex SmartCaptcha для WordPress с поддержкой Elementor и Contact Form 7.
- * Version: 1.1.0
+ * Version: 1.1.3
  * Author: Dark Wizard
  * Author URI: https://darktech.ru
  * License: GPL-2.0-or-later
