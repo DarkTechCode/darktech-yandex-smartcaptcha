@@ -32,7 +32,7 @@ final class DarkTech_YSC_Settings_Page
     public function renderSettingsSection(): void
     {
         echo '<p>' . esc_html__(
-            'Укажите ключи SmartCaptcha и используйте плагин в Elementor или Contact Form 7.',
+            'Укажите ключи SmartCaptcha и выберите формы, где нужна проверка.',
             DarkTech_YSC_Plugin_Config::TEXT_DOMAIN
         ) . '</p>';
     }
@@ -79,16 +79,55 @@ final class DarkTech_YSC_Settings_Page
         ) . '</p>';
     }
 
+    public function renderUsageTargetsField(): void
+    {
+        echo '<fieldset>';
+        $this->renderCheckbox(
+            'enable_registration',
+            $this->options->isRegistrationEnabled(),
+            esc_html__('Регистрация пользователей', DarkTech_YSC_Plugin_Config::TEXT_DOMAIN)
+        );
+        echo '<br />';
+        $this->renderCheckbox(
+            'enable_lost_password',
+            $this->options->isLostPasswordEnabled(),
+            esc_html__('Восстановление пароля', DarkTech_YSC_Plugin_Config::TEXT_DOMAIN)
+        );
+        echo '<br />';
+        $this->renderCheckbox(
+            'enable_login',
+            $this->options->isLoginEnabled(),
+            esc_html__('Вход в админку', DarkTech_YSC_Plugin_Config::TEXT_DOMAIN)
+        );
+        echo '<br />';
+        $this->renderCheckbox(
+            'enable_comments',
+            $this->options->isCommentsEnabled(),
+            esc_html__('Добавление комментариев', DarkTech_YSC_Plugin_Config::TEXT_DOMAIN)
+        );
+        echo '</fieldset>';
+    }
+
     public function renderDebugField(): void
     {
-        printf(
-            '<label><input type="checkbox" name="%1$s[debug]" value="1" %2$s /> %3$s</label>',
-            esc_attr(DarkTech_YSC_Plugin_Config::OPTION_KEY),
-            checked($this->options->isDebugEnabled(), true, false),
+        $this->renderCheckbox(
+            'debug',
+            $this->options->isDebugEnabled(),
             esc_html__(
                 'Логировать события в wp-content/debug.log (нужны WP_DEBUG и WP_DEBUG_LOG).',
                 DarkTech_YSC_Plugin_Config::TEXT_DOMAIN
             )
+        );
+    }
+
+    private function renderCheckbox(string $option_key, bool $is_checked, string $label): void
+    {
+        printf(
+            '<label><input type="checkbox" name="%1$s[%2$s]" value="1" %3$s /> %4$s</label>',
+            esc_attr(DarkTech_YSC_Plugin_Config::OPTION_KEY),
+            esc_attr($option_key),
+            checked($is_checked, true, false),
+            esc_html($label)
         );
     }
 
@@ -116,9 +155,10 @@ final class DarkTech_YSC_Settings_Page
             <p><strong><?php echo esc_html__('Contact Form 7:', DarkTech_YSC_Plugin_Config::TEXT_DOMAIN); ?></strong> <code>[darktech_captcha*]</code></p>
             <p><?php echo esc_html__('Добавьте form-tag в шаблон формы Contact Form 7 в том месте, где должен появиться виджет. Имя поля можно не задавать вручную.', DarkTech_YSC_Plugin_Config::TEXT_DOMAIN); ?></p>
 
+            <p><strong><?php echo esc_html__('WordPress:', DarkTech_YSC_Plugin_Config::TEXT_DOMAIN); ?></strong> <?php echo esc_html__('Для стандартных форм включите нужные пункты в настройке «Где использовать капчу».', DarkTech_YSC_Plugin_Config::TEXT_DOMAIN); ?></p>
+
             <p><strong><?php echo esc_html__('Важно:', DarkTech_YSC_Plugin_Config::TEXT_DOMAIN); ?></strong> <?php echo esc_html__('Если ключи не настроены, виджет не будет рендериться, а серверная проверка не сможет отработать.', DarkTech_YSC_Plugin_Config::TEXT_DOMAIN); ?></p>
         </div>
 <?php
     }
 }
-

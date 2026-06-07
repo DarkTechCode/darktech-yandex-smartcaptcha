@@ -29,6 +29,42 @@ final class DarkTech_YSC_Options_Repository
         return '1' === $this->getOption('debug', '0');
     }
 
+    public function isRegistrationEnabled(): bool
+    {
+        return $this->isBooleanOptionEnabled(
+            'enable_registration',
+            'dt_ysc_enable_registration',
+            'darktech_ysc_enable_registration'
+        );
+    }
+
+    public function isLostPasswordEnabled(): bool
+    {
+        return $this->isBooleanOptionEnabled(
+            'enable_lost_password',
+            'dt_ysc_enable_lost_password',
+            'darktech_ysc_enable_lost_password'
+        );
+    }
+
+    public function isLoginEnabled(): bool
+    {
+        return $this->isBooleanOptionEnabled(
+            'enable_login',
+            'dt_ysc_enable_login',
+            'darktech_ysc_enable_login'
+        );
+    }
+
+    public function isCommentsEnabled(): bool
+    {
+        return $this->isBooleanOptionEnabled(
+            'enable_comments',
+            'dt_ysc_enable_comments',
+            'darktech_ysc_enable_comments'
+        );
+    }
+
     public function getClientKey(): string
     {
         $value = trim($this->getOption('client_key'));
@@ -99,5 +135,12 @@ final class DarkTech_YSC_Options_Repository
 
         return (string) apply_filters($hook, $value);
     }
-}
 
+    private function isBooleanOptionEnabled(string $key, string $legacy_hook, string $hook): bool
+    {
+        $enabled = '1' === $this->getOption($key, '0');
+        $enabled = (bool) apply_filters($legacy_hook, $enabled);
+
+        return (bool) apply_filters($hook, $enabled);
+    }
+}

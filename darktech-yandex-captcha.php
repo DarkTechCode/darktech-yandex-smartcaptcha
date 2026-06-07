@@ -5,8 +5,8 @@ declare(strict_types=1);
 /**
  * Plugin Name: DarkTech Yandex SmartCaptcha
  * Plugin URI: https://github.com/DarkTechCode/darktech-yandex-smartcaptcha
- * Description: Интеграция Yandex SmartCaptcha для WordPress с поддержкой Elementor и Contact Form 7.
- * Version: 1.1.3
+ * Description: Интеграция Yandex SmartCaptcha для WordPress с поддержкой стандартных форм, Elementor и Contact Form 7.
+ * Version: 1.2.0
  * Author: Dark Wizard
  * Author URI: https://darktech.ru
  * License: GPL-2.0-or-later
@@ -42,7 +42,7 @@ require_once DARKTECH_YSC_PLUGIN_DIR . 'includes/class-darktech-ysc-shortcode-ha
 require_once DARKTECH_YSC_PLUGIN_DIR . 'includes/class-darktech-ysc-token-validator.php';
 require_once DARKTECH_YSC_PLUGIN_DIR . 'includes/class-darktech-ysc-elementor-integration.php';
 require_once DARKTECH_YSC_PLUGIN_DIR . 'includes/class-darktech-ysc-cf7-integration.php';
+require_once DARKTECH_YSC_PLUGIN_DIR . 'includes/class-darktech-ysc-wordpress-core-integration.php';
 require_once DARKTECH_YSC_PLUGIN_DIR . 'includes/class-darktech-ysc-plugin.php';
 
 (new DarkTech_YSC_Plugin())->boot();
-

@@ -39,6 +39,17 @@ final class DarkTech_YSC_Widget_Renderer
         return $this->buildWidgetMarkup($this->options->getDefaultTokenFieldName(), 'elementor');
     }
 
+    public function renderWordPressCoreField(string $field_name, string $context): string
+    {
+        if (! $this->options->hasClientKey()) {
+            return $this->renderMissingKeyNotice();
+        }
+
+        $this->assets->enqueueFrontend();
+
+        return $this->buildWidgetMarkup($field_name, $context);
+    }
+
     public function renderCf7Field(string $field_name, string $validation_error): string
     {
         if (! $this->options->hasClientKey()) {
@@ -146,4 +157,3 @@ final class DarkTech_YSC_Widget_Renderer
         );
     }
 }
-

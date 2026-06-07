@@ -2,6 +2,7 @@
 
 Плагин добавляет Yandex SmartCaptcha в WordPress и умеет работать с:
 
+- стандартными формами WordPress: вход, регистрация, восстановление пароля, комментарии
 - Elementor через шорткод
 - Contact Form 7 через собственный form-tag
 
@@ -9,6 +10,8 @@
 
 - рендерит виджет Yandex SmartCaptcha на фронтенде
 - выполняет серверную проверку токена через Yandex API
+- поддерживает стандартные формы входа, регистрации, восстановления пароля и комментариев WordPress
+- позволяет включать капчу отдельно для регистрации, восстановления пароля, входа и комментариев
 - поддерживает динамические формы Elementor
 - поддерживает Contact Form 7
 - пишет логи в `wp-content/debug.log` при включённом debug-режиме
@@ -23,6 +26,7 @@
 3. Активируйте плагин в WordPress.
 4. Перейдите в `Настройки > Yandex SmartCaptcha`.
 5. Сохраните `Client key` и `Server key`.
+6. Отметьте формы WordPress, где нужна капча.
 
 ## Настройка ключей
 
@@ -64,6 +68,17 @@
 
 Если имя поля не указано явно, используется имя по умолчанию `darktech-captcha`.
 
+## Использование в стандартных формах WordPress
+
+На странице настроек отметьте нужные пункты в блоке `Где использовать капчу`:
+
+- регистрация пользователей
+- восстановление пароля
+- вход в админку
+- добавление комментариев, включая комментарии без авторизации
+
+Плагин сам выводит виджет в выбранных стандартных формах и проверяет токен до выполнения действия.
+
 ## Отладка
 
 Чтобы включить логирование, добавьте в `wp-config.php`:
@@ -87,10 +102,11 @@ define('WP_DEBUG_DISPLAY', false);
 - `includes/class-darktech-ysc-settings-page.php` — вывод страницы настроек в `Настройки > Yandex SmartCaptcha`
 - `includes/class-darktech-ysc-settings-registrar.php` — регистрация settings section и settings fields
 - `includes/class-darktech-ysc-assets.php` — регистрация и подключение Yandex API script и `ysc-frontend.js`
-- `includes/class-darktech-ysc-widget-renderer.php` — HTML-разметка SmartCaptcha для shortcode и Contact Form 7
+- `includes/class-darktech-ysc-widget-renderer.php` — HTML-разметка SmartCaptcha для shortcode, стандартных форм WordPress и Contact Form 7
 - `includes/class-darktech-ysc-shortcode-handler.php` — регистрация shortcode `[darktech-captcha]`
 - `includes/class-darktech-ysc-elementor-integration.php` — валидация токена в отправках Elementor Pro Forms
 - `includes/class-darktech-ysc-cf7-integration.php` — регистрация form-tag'ов Contact Form 7 и серверная валидация
+- `includes/class-darktech-ysc-wordpress-core-integration.php` — вывод и проверка капчи в стандартных формах WordPress
 - `includes/class-darktech-ysc-token-validator.php` — запрос к Yandex SmartCaptcha Validate API и разбор ответа
 - `includes/class-darktech-ysc-request-data.php` — безопасное чтение `$_POST`, `$_REQUEST` и IP-адреса
 - `includes/class-darktech-ysc-logger.php` — логирование в `debug.log`, если включены debug-настройки
@@ -104,6 +120,14 @@ define('WP_DEBUG_DISPLAY', false);
 - Contact Form 7
 
 ## Changelog
+
+### 1.2.0
+
+- добавлена капча для регистрации пользователей
+- добавлена капча для восстановления пароля
+- добавлена капча для входа в админку
+- добавлена капча для комментариев, включая отправку без авторизации
+- добавлены настройки выбора форм WordPress, где используется капча
 
 ### 1.1.3
 
@@ -137,4 +161,3 @@ define('WP_DEBUG_DISPLAY', false);
 ## Лицензия
 
 GPL-2.0-or-later
-

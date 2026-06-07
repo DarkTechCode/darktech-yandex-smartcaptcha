@@ -69,6 +69,14 @@ final class DarkTech_YSC_Settings_Registrar
         );
 
         add_settings_field(
+            'usage_targets',
+            esc_html__('Где использовать капчу', DarkTech_YSC_Plugin_Config::TEXT_DOMAIN),
+            [$this->settings_page, 'renderUsageTargetsField'],
+            DarkTech_YSC_Plugin_Config::SETTINGS_SLUG,
+            'darktech_ysc_main'
+        );
+
+        add_settings_field(
             'debug',
             esc_html__('Debug logging', DarkTech_YSC_Plugin_Config::TEXT_DOMAIN),
             [$this->settings_page, 'renderDebugField'],
@@ -77,4 +85,3 @@ final class DarkTech_YSC_Settings_Registrar
         );
     }
 }
-

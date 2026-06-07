@@ -38,6 +38,11 @@ final class DarkTech_YSC_Plugin
      */
     private $cf7_integration;
 
+    /**
+     * @var DarkTech_YSC_WordPress_Core_Integration
+     */
+    private $wordpress_core_integration;
+
     public function __construct()
     {
         $token_field_name_sanitizer = new DarkTech_YSC_Token_Field_Name_Sanitizer();
@@ -66,6 +71,12 @@ final class DarkTech_YSC_Plugin
             $token_validator,
             $request_data
         );
+        $this->wordpress_core_integration = new DarkTech_YSC_WordPress_Core_Integration(
+            $widget_renderer,
+            $token_validator,
+            $options,
+            $assets
+        );
     }
 
     public function boot(): void
@@ -77,6 +88,10 @@ final class DarkTech_YSC_Plugin
         add_action('wp_enqueue_scripts', [$this->assets, 'enqueueFrontend']);
         add_action('elementor_pro/forms/validation', [$this->elementor_integration, 'validateForm'], 10, 2);
         add_action('wpcf7_init', [$this->cf7_integration, 'registerFormTag']);
+        add_action('login_enqueue_scripts', [$this->wordpress_core_integration, 'enqueueLoginAssets']);
+        add_action('login_form', [$this->wordpress_core_integration, 'renderLoginCaptcha']);
+        add_action('register_form', [$this->wordpress_core_integration, 'renderRegistrationCaptcha']);
+        add_action('lostpassword_form', [$this->wordpress_core_integration, 'renderLostPasswordCaptcha']);
 
         add_filter(
             'plugin_action_links_' . plugin_basename(DARKTECH_YSC_PLUGIN_FILE),
@@ -84,6 +99,11 @@ final class DarkTech_YSC_Plugin
         );
         add_filter('wpcf7_validate_darktech_captcha', [$this->cf7_integration, 'validateTag'], 10, 2);
         add_filter('wpcf7_validate_darktech_captcha*', [$this->cf7_integration, 'validateTag'], 10, 2);
+        add_filter('authenticate', [$this->wordpress_core_integration, 'validateLogin'], 10, 3);
+        add_filter('registration_errors', [$this->wordpress_core_integration, 'validateRegistration'], 10, 3);
+        add_filter('lostpassword_errors', [$this->wordpress_core_integration, 'validateLostPassword'], 10, 2);
+        add_filter('comment_form_submit_field', [$this->wordpress_core_integration, 'renderCommentCaptchaBeforeSubmit']);
+        add_filter('preprocess_comment', [$this->wordpress_core_integration, 'validateComment']);
     }
 
     public function loadTextdomain(): void
@@ -108,4 +128,3 @@ final class DarkTech_YSC_Plugin
         return $links;
     }
 }
-

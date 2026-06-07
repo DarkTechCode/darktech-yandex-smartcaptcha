@@ -16,9 +16,13 @@ final class DarkTech_YSC_Plugin_Config
     public const SHORTCODE = 'darktech-captcha';
     public const API_HANDLE = 'darktech-ysc-api';
     public const FRONTEND_HANDLE = 'darktech-ysc-frontend';
-    public const VERSION = '1.1.3';
+    public const VERSION = '1.2.0';
     public const VALIDATE_ENDPOINT = 'https://smartcaptcha.cloud.yandex.ru/validate';
     public const DEFAULT_TOKEN_FIELD_NAME = 'yandex_smart_token';
     public const DEFAULT_CF7_FIELD_NAME = 'darktech-captcha';
+    public const DEFAULT_LOGIN_FIELD_NAME = 'darktech_ysc_login_token';
+    public const DEFAULT_REGISTRATION_FIELD_NAME = 'darktech_ysc_registration_token';
+    public const DEFAULT_LOST_PASSWORD_FIELD_NAME = 'darktech_ysc_lost_password_token';
+    public const DEFAULT_COMMENT_FIELD_NAME = 'darktech_ysc_comment_token';
 }
 

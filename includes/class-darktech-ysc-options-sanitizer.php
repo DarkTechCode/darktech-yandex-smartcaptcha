@@ -36,8 +36,11 @@ final class DarkTech_YSC_Options_Sanitizer
             'token_field_name' => isset($input['token_field_name'])
                 ? $this->token_field_name_sanitizer->sanitize((string) $input['token_field_name'])
                 : DarkTech_YSC_Plugin_Config::DEFAULT_TOKEN_FIELD_NAME,
+            'enable_registration' => ! empty($input['enable_registration']) ? '1' : '0',
+            'enable_lost_password' => ! empty($input['enable_lost_password']) ? '1' : '0',
+            'enable_login' => ! empty($input['enable_login']) ? '1' : '0',
+            'enable_comments' => ! empty($input['enable_comments']) ? '1' : '0',
             'debug' => ! empty($input['debug']) ? '1' : '0',
         ];
     }
 }
-
